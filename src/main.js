@@ -7,7 +7,7 @@
 function calculateSimpleRevenue(purchase, _product) {
   // @TODO: Расчет выручки от операции
   const discount = 1 - purchase.discount / 100;
-  return purchase.sale_price * purchase.quantity * discount;
+  return +(purchase.sale_price * purchase.quantity * discount).toFixed(2);
   // purchase — это одна из записей в поле items из чека в data.purchase_records
   // _product — это продукт из коллекции data.products
   //    const { discount, sale_price, quantity } = purchase;
