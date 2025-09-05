@@ -38,11 +38,14 @@ async function render(action) {
   let query = {}; // копируем для последующего изменения
   // @todo: использование
   //   result = applySearching(result, state, action);  // поиск
-  //   result = applyPagination(result, state, action);  //переключение страниц
-  //   result = applySorting(result, state, action);  // сортировка
   //   result = applyFiltering(result, state, action);  // фильтрация
-  const { total, items } = await api.getRecords(query);
-  sampleTable.render(items);
+  //   result = applySorting(result, state, action);  // сортировка
+  query = applyPagination(query, state, action); // обновляем query
+
+    const { total, items } = await api.getRecords(query); // запрашиваем данные с собранными параметрами
+
+    updatePagination(total, query); // перерисовываем пагинатор
+    sampleTable.render(items);
 }
 
 const sampleTable = initTable(
@@ -61,12 +64,12 @@ const applySorting = initSorting([
   sampleTable.header.elements.sortByDate,
   sampleTable.header.elements.sortByTotal,
 ]);
-// const applyFiltering = initFiltering(sampleTable.filter.elements, {
-//   // передаём элементы фильтра
-//   searchBySeller: indexes.sellers, // для элемента с именем searchBySeller устанавливаем массив продавцов
-// });
+const applyFiltering = initFiltering(sampleTable.filter.elements, {
+  // передаём элементы фильтра
+  searchBySeller: indexes.sellers, // для элемента с именем searchBySeller устанавливаем массив продавцов
+});
 
-const applyPagination = initPagination(
+const {applyPagination, updatePagination} = initPagination(
   sampleTable.pagination.elements, // передаём сюда элементы пагинации, найденные в шаблоне
   (el, page, isCurrent) => {
     // и колбэк, чтобы заполнять кнопки страниц данными
