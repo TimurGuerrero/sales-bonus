@@ -1,11 +1,8 @@
 import "./fonts/ys-display/fonts.css";
 import "./style.css";
-
 import { data as sourceData } from "./data/dataset_1.js";
-
 import { initData } from "./data.js";
 import { processFormData } from "./lib/utils.js";
-
 import { initTable } from "./components/table.js";
 import { initPagination } from "./components/pagination.js";
 import { initSorting } from "./components/sorting.js";
@@ -14,7 +11,7 @@ import { initSearching } from "./components/searching.js";
 // @todo: подключение
 
 // Исходные данные используемые в render()
-const { data, ...indexes } = initData(sourceData);
+const api = initData(sourceData);
 
 /**
  * Сбор и обработка полей из таблицы
@@ -36,15 +33,16 @@ function collectState() {
  * Перерисовка состояния таблицы при любых изменениях
  * @param {HTMLButtonElement?} action
  */
-function render(action) {
+async function render(action) {
   let state = collectState(); // состояние полей из таблицы
-  let result = [...data]; // копируем для последующего изменения
+  let query = {}; // копируем для последующего изменения
   // @todo: использование
-  result = applySearching(result, state, action);
-  result = applyPagination(result, state, action);
-  result = applySorting(result, state, action);
-  result = applyFiltering(result, state, action);
-  sampleTable.render(result);
+  //   result = applySearching(result, state, action);  // поиск
+  //   result = applyPagination(result, state, action);  //переключение страниц
+  //   result = applySorting(result, state, action);  // сортировка
+  //   result = applyFiltering(result, state, action);  // фильтрация
+  const { total, items } = await api.getRecords(query);
+  sampleTable.render(items);
 }
 
 const sampleTable = initTable(
@@ -63,9 +61,10 @@ const applySorting = initSorting([
   sampleTable.header.elements.sortByDate,
   sampleTable.header.elements.sortByTotal,
 ]);
-const applyFiltering = initFiltering(sampleTable.filter.elements, {    // передаём элементы фильтра
-    searchBySeller: indexes.sellers                                    // для элемента с именем searchBySeller устанавливаем массив продавцов
-}); 
+// const applyFiltering = initFiltering(sampleTable.filter.elements, {
+//   // передаём элементы фильтра
+//   searchBySeller: indexes.sellers, // для элемента с именем searchBySeller устанавливаем массив продавцов
+// });
 
 const applyPagination = initPagination(
   sampleTable.pagination.elements, // передаём сюда элементы пагинации, найденные в шаблоне
@@ -80,7 +79,13 @@ const applyPagination = initPagination(
   }
 );
 
+
+async function init() {
+    const indexes = await api.getIndexes();
+
+}
+
 const appRoot = document.querySelector("#app");
 appRoot.appendChild(sampleTable.container);
 
-render();
+init().then(render);
